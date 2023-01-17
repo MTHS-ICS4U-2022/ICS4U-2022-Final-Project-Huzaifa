@@ -1,9 +1,27 @@
+// geometry
+class Vector {
+  constructor(x, y) {
+    this.x = x
+    this.y = y
+  }
+
+  subtract({x, y}) {
+    return new Vector(this.x -x, this.y - y)
+  }
+
 // #reion constants
 const UPDATE_EVERY = 1000 / 60
 // #endregion
 
 // #region game core
 const getGameInitialState = (config = {}) => {
+  const {
+    width,
+    height,
+    speed,
+    initialSnakeLength,
+    initialDirection
+  } = { ... config, ...DEFAULT_GAME_CONFIG }
   return {}
 }
 // #endregion
