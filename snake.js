@@ -2,14 +2,38 @@
 const UPDATE_EVERY = 1000 / 60
 // #endregion
 
+// #region game core
+const getGameInitialState = (config = {}) => {
+  return {}
+}
+// #endregion
+
 // #region rendering
+const getContainer = () => document.getElementById('container')
+
+const getContainerSize = () => {
+  const { width, height } = getContainer().getBoundingClientRect()
+  return { width, height }
+}
+
+const getProjectors = (containerSize, game) =>{
+  return {}
+}
+
 const render = (state) => {
   console.log('render')
 }
 // #region main
 
 const getInitialState = () => {
-  return {}
+  const game = getGameInitialState()
+  const containerSize = getContainerSize()
+  return {
+    game,
+    bestScore: parseInt(localStorage.bestScore) || 0,
+    ...containerSize,
+    ...getProjectors(containerSize, game)
+  }
 }
 
 const getNewStatePropsOnTick = (props) => {
@@ -36,7 +60,7 @@ const tick = () => {
   updateState(newProps)
   render(state)
  }
-  setInterval(tick, UPDATE_EVERY)
+ setInterval(tick, UPDATE_EVERY)
 }
 // #endregion
 
