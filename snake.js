@@ -41,11 +41,69 @@ class Segment {
     this.end = end
   }
 
+  getVector() {
+    return this.end.subtract(this.start)
+  }
+
+  length() {
+    return this.getVector().length()
+  }
+
+  isPointInside(point) {
+    const first = new Segment(this.start, point)
+    const second = new Segment(point, this.end)
+    return areEqual(this.length(), first.length() + second.length())
+  }
+
+  getProjectedPoint({ x,  y }) {
+    const { start, end } = this
+    const { x: px, y: py } = end.subtract(start)
+    const u = ((x - start.x) * px + (y - start.y) * py) / (px * px + py * py)
+    return new Vector(start.x + u * px, start.y + u * py)
+  }
+}
+
+const getSegmentsFromVectors = vectors => getWithoutLastElement(vectors)
+  .map((one, index) => new Segment(one, vectors[index + 1]))
+// #endregion
+
 // #reion constants
 const UPDATE_EVERY = 1000 / 60
+
+const DIRECTION = {
+  TOP: new Vector(0, -1),
+  RIGHT: new Vector(1, 0),
+  DOWN: new Vector(0, 1),
+  LEFT: new Vector(-1, 0)
+}
+
+const DEFAULT_GAME_CONFIG = {
+  width: 17,
+  height: 15,
+  speed: 0.006,
+  initialSnakeLength: 3,
+  initialDirection: DIRECTION.RIGHT
+}
+
+const MOVEMENT_KEYS = {
+  TOP: [87, 38],
+  RIGHT: [68, 39],
+  DOWN: [83, 40],
+  LEFT: [65, 37]
+}
+const STOP_KEY = 32
 // #endregion
 
 // #region game core
+const getFood = (width, height, snake) => {
+  const allPositions = getRange(width).map(x =>
+    getRange(height).map(y => new Vector(x + 0.5, y + 0.5))).flat()
+  const segments = getSegmentsFromVectors(snake)
+  const freePositions = allPositions
+  .filter(point => segments.every(segment => !segment.isPointInside(point)))
+  return getRandomFrom(freePositions)
+}
+
 const getGameInitialState = (config = {}) => {
   const {
     width,
@@ -54,7 +112,11 @@ const getGameInitialState = (config = {}) => {
     initialSnakeLength,
     initialDirection
   } = { ... config, ...DEFAULT_GAME_CONFIG }
-  return {}
+  const head = new Vector(
+    Math.round(width / 2) - 0.5,
+    Math.round(height / 2) - 0.5
+    
+  )
 }
 // #endregion
 
