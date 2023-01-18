@@ -111,13 +111,37 @@ const getGameInitialState = (config = {}) => {
     speed,
     initialSnakeLength,
     initialDirection
-  } = { ... config, ...DEFAULT_GAME_CONFIG }
+  } = { ...config, ...DEFAULT_GAME_CONFIG }
   const head = new Vector(
     Math.round(width / 2) - 0.5,
     Math.round(height / 2) - 0.5
-    
   )
+  const tailtip = head.subtract(initialDirection.scaleBy(initialSnakeLength))
+  const snake = [tailtip, head]
+  const food = getFood(width, height, snake)
+
+  return {
+    width,
+    height,
+    speed,
+    initialSnakeLength,
+    initialDirection,
+    snake,
+    direction: initialDirection,
+    food,
+    score: 0
+  }
 }
+const getNewTail = (oldSnake, distance) => {
+  const { tail } = getWithoutLastElement(oldSnake).reduce((acc, point, index)) => {
+    if(acc.tail.length !==0) {
+      return {
+        ...acc,
+        tail: [...acc.tail, point]
+      }
+    }
+    const next = oldSnake[index + 1]
+    const segment = new 
 // #endregion
 
 // #region rendering
