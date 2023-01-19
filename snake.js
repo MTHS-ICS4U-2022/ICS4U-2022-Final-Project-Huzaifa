@@ -133,16 +133,37 @@ const getGameInitialState = (config = {}) => {
   }
 }
 const getNewTail = (oldSnake, distance) => {
-  const { tail } = getWithoutLastElement(oldSnake).reduce((acc, point, index)) => {
-    if(acc.tail.length !==0) {
+  const { tail } = getWithoutLastElement(oldSnake).reduce((acc, point, index) => {
+    if (acc.tail.length !== 0) {
       return {
         ...acc,
         tail: [...acc.tail, point]
       }
     }
     const next = oldSnake[index + 1]
-    const segment = new 
-// #endregion
+    const segment = new Segment(point, next)
+    const length = segment.length()
+    if (length >= distance) {
+      const vector = segment.getVector().normalize().scaleBy(acc.distance)
+      return {
+        distance: 0,
+        tail: [...acc.tail, point.add(vector)]
+      }
+    } else {
+      return {
+        ...acc,
+        distance: acc.distance - length
+      }
+    }
+  }, { distance, tail: [] })
+  return tail
+}
+
+const getNewDirection = (oldDirection, movement) => {
+  const newDirection = DIRECTION[movement]
+  const shouldChange = newDirection && !oldDirection.isOpposite(newDirection)
+  return shouldChange ? newDirection : oldDirection
+}
 
 // #region rendering
 const getContainer = () => document.getElementById('container')
