@@ -165,6 +165,45 @@ const getNewDirection = (oldDirection, movement) => {
   return shouldChange ? newDirection : oldDirection
 }
 
+const getStateAfterMoveProcessing = (state, movement, distance) => {
+  const newTail = getNewTail(state.snake, distance)
+  const oldHead = getLastElement(state.snake)
+  const newHead = oldHead.add(state.direction.scaleBy(distance))
+  const newDirection = getNewDirection(state.direction, movement)
+  if (!state.direction.equalTo(newDirection)) {
+    const { x: oldX, y: oldY } = oldHead
+    const [
+      oldXRounded,
+      oldYRounded,
+      newXRounded,
+      newYRounded
+    ] = [oldX, oldY, newHead.x, newHead.y].map(Math.round)
+    const getStateWithBrokenSnake = (old, oldRounded, newRounded, getBreakpoint) => {
+      const breakpointComponent = oldRounded + (newRounded > oldRounded ? 0.5 : -0.5)
+      const breakpoint = getBreakpoint(breakpointComponent)
+      const vector = newDirection.scaleBy(distance - Math.abs(old - breakComponent))
+      const head = breakpoint.add(vector)
+      return {
+        ...state,
+        direction: newDirection,
+        snake: [...newTail, breakpoint, head]
+      }
+    }
+    if (oldYRounded !== newYRounded) {
+      return getStateWithBrokenSnake(
+        oldY,
+        oldYRounded,
+        newYRounded,
+        y => new Vector(oldX, Y)
+        )
+    }
+  }
+}
+return {
+  ...state,
+  snake: [...newTail, newHead]
+  }
+}
 // #region rendering
 const getContainer = () => document.getElementById('container')
 
