@@ -111,15 +111,99 @@ const getGameInitialState = (config = {}) => {
     speed,
     initialSnakeLength,
     initialDirection
-  } = { ... config, ...DEFAULT_GAME_CONFIG }
+  } = { ...config, ...DEFAULT_GAME_CONFIG }
   const head = new Vector(
     Math.round(width / 2) - 0.5,
     Math.round(height / 2) - 0.5
-    
   )
-}
-// #endregion
+  const tailtip = head.subtract(initialDirection.scaleBy(initialSnakeLength))
+  const snake = [tailtip, head]
+  const food = getFood(width, height, snake)
 
+  return {
+    width,
+    height,
+    speed,
+    initialSnakeLength,
+    initialDirection,
+    snake,
+    direction: initialDirection,
+    food,
+    score: 0
+  }
+}
+const getNewTail = (oldSnake, distance) => {
+  const { tail } = getWithoutLastElement(oldSnake).reduce((acc, point, index) => {
+    if (acc.tail.length !== 0) {
+      return {
+        ...acc,
+        tail: [...acc.tail, point]
+      }
+    }
+    const next = oldSnake[index + 1]
+    const segment = new Segment(point, next)
+    const length = segment.length()
+    if (length >= distance) {
+      const vector = segment.getVector().normalize().scaleBy(acc.distance)
+      return {
+        distance: 0,
+        tail: [...acc.tail, point.add(vector)]
+      }
+    } else {
+      return {
+        ...acc,
+        distance: acc.distance - length
+      }
+    }
+  }, { distance, tail: [] })
+  return tail
+}
+
+const getNewDirection = (oldDirection, movement) => {
+  const newDirection = DIRECTION[movement]
+  const shouldChange = newDirection && !oldDirection.isOpposite(newDirection)
+  return shouldChange ? newDirection : oldDirection
+}
+
+const getStateAfterMoveProcessing = (state, movement, distance) => {
+  const newTail = getNewTail(state.snake, distance)
+  const oldHead = getLastElement(state.snake)
+  const newHead = oldHead.add(state.direction.scaleBy(distance))
+  const newDirection = getNewDirection(state.direction, movement)
+  if (!state.direction.equalTo(newDirection)) {
+    const { x: oldX, y: oldY } = oldHead
+    const [
+      oldXRounded,
+      oldYRounded,
+      newXRounded,
+      newYRounded
+    ] = [oldX, oldY, newHead.x, newHead.y].map(Math.round)
+    const getStateWithBrokenSnake = (old, oldRounded, newRounded, getBreakpoint) => {
+      const breakpointComponent = oldRounded + (newRounded > oldRounded ? 0.5 : -0.5)
+      const breakpoint = getBreakpoint(breakpointComponent)
+      const vector = newDirection.scaleBy(distance - Math.abs(old - breakComponent))
+      const head = breakpoint.add(vector)
+      return {
+        ...state,
+        direction: newDirection,
+        snake: [...newTail, breakpoint, head]
+      }
+    }
+    if (oldYRounded !== newYRounded) {
+      return getStateWithBrokenSnake(
+        oldY,
+        oldYRounded,
+        newYRounded,
+        y => new Vector(oldX, Y)
+        )
+    }
+  }
+}
+return {
+  ...state,
+  snake: [...newTail, newHead]
+  }
+}
 // #region rendering
 const getContainer = () => document.getElementById('container')
 
