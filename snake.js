@@ -198,13 +198,62 @@ const getStateAfterMoveProcessing = (state, movement, distance) => {
         )
     }
   }
-}
 return {
   ...state,
   snake: [...newTail, newHead]
   }
 }
-// #region rendering
+
+const getStateAfterFoodProcessing = (state) => {
+  const headSegment = newSegment(
+    getLastElement(getWithoutLastElement(state.snake)),
+    getLastElement(state.snake)
+  )
+  if (!headSegement.isPointInside(state.food)) return state
+
+  const [tailEnd, beforeTailEnd, ...restOfSnake] = state.snake
+  const tailSegment = new Segment(beforeTailEnd, tailEnd)
+  const newTailEnd = tailEnd.add(tailSegment.getVector().normalize())
+  const snake = [newTailEnd, beforeTailEnd, ...restOfSnake]
+  const food = getFood(state.width, state.height, snake)
+  return {
+    ...state,
+    snake,
+    score: state.score + 1,
+    food
+  }
+}
+
+const isGameOver = ({ snake, width, height }) => {
+  const { x, y } = getLastElement(snake)
+  if (x < 0 || x > width || y < 0 || y > height) {
+    return true
+  }
+  if (snake.length < 5) return false
+
+  const [head, ...tail] = snake.slice().reverse()
+  return getSegmentsFromVectors(tail).slice(2).find(segment => {
+    const projected = segement.getProjectedPoint(head)
+    if (!segment.isPointInside(projected)) {
+      return false
+    }
+    const distance = new Segment(heads, projected).length()
+    return distance < 0.5
+  })
+}
+
+const getNewGameState = (state, movement, timespan) => {
+  const distance = state.speed * timespan
+  const stateAfterMove = getStateAfterMoveProcessing(state, movement, distance)
+  const stateAfterFood = getStateAfterFoodProcessing(stateAfterMove)
+  if (isGameOver(stateAfterFood)) {
+    return getGameInitialState(state)
+  }
+  return stateAfterFood
+}
+// #endregion rendering
+
+// region rendering
 const getContainer = () => document.getElementById('container')
 
 const getContainerSize = () => {
@@ -212,8 +261,23 @@ const getContainerSize = () => {
   return { width, height }
 }
 
+const clearContainer = () => {
+  const container = getContainer()
+  const [child] = container.children
+  if (child) {
+    container.removeChild(child)
+  }
+}
+
 const getProjectors = (containerSize, game) =>{
-  return {}
+  const widthRatio = containerSize.width / game.width
+  const heightRatio = containerSize.height / game.height
+  const unitOnScreen = Math.min(widthRatio, heightRatio)
+
+  return {
+    projectDistance: distance => distance * unitOnScreen,
+    projectPosition: position => position.scaleBy(unitOnScreen)
+  }
 }
 
 const render = (state) => {
